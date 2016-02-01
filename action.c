@@ -1,7 +1,9 @@
 #include <ncurses.h>
 #include <dirent.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/stat.h>
 #include "ad.h"
 extern WINDOW *list[2];
@@ -51,6 +53,8 @@ int selector (int cur_win, int ptr, int key) {
  int my_open (int cur_win,int ptr) {
      int i,p;
      char* name;
+     pid_t pid;
+     int status;
      /*Переходим в текущую директорию*/
      p=chdir(cur_space[cur_win]);
      if(p==-1)
@@ -69,12 +73,55 @@ int selector (int cur_win, int ptr, int key) {
      {
          my_dir=readdir(dir);
      }
+     name=my_dir->d_name;
      /*Если выбранный объект-директория,вызываем функцию отрисовки нового списка*/
      if(my_dir->d_type==4){
-         name=my_dir->d_name;
+
          max[cur_win]=new_list(cur_win,cur_space[cur_win],name);
          return 2;
      }
-     /*Если не директория,пока никаких действий*/
+     /*Если не директория,проверяем файл на "регулярность"*/
+     if (my_dir->d_type==8){
+         i=access(name,X_OK); //проверяем БИТ исполняемости.
+
+         /*Если файл имеет разрешение на исполнение,запускаем*/
+         if ((access(name,X_OK)==0)){
+             pid=fork();
+             if (pid==0){
+                 execl(name,name,NULL);
+                 exit(1);
+             }
+             /*Родительским процессом ожидаем завершения дочернего.Если дочерний возвращет 1- выводим сообщение о ошибке*/
+             else {
+                 wait(&status);
+                 if (status==1){
+                     perror("fork");
+                     my_refresh();
+                     return ptr;
+                 }
+                 /*Востанавливаем параметры экрана*/
+                 my_refresh();
+                 return ptr;
+             }
+         }
+         /*Если файл не исполняемый, открываем его своим текстовым редактором. Редактору передаём имя файла и путь к нему*/
+         else {
+
+                pid=fork();
+                if (pid==0){
+                execl("/home/igor/my_editor","/home/igor/my_editor",my_dir->d_name,cur_space[cur_win],NULL);
+                exit(1);
+                }
+                else{
+                wait(&status);
+                if (status==1){
+                    perror("txt");
+                }
+                my_refresh();
+
+                }
+            }
+
+         }
      return ptr ;
      }

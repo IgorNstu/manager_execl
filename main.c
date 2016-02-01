@@ -59,6 +59,7 @@ int main(void)
         case 10:
             ptr= my_open(cur_win,ptr);
             ptr=selector(cur_win,ptr,3);
+
         break;
 
         /*Переход в родительскую папку текущей папки*/
@@ -81,6 +82,6 @@ int main(void)
     delwin(list[1]);
     delwin(list[0]);
     echo();
-    curs_set(TRUE);
+    curs_set(1);
     return 0;
 }

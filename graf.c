@@ -20,7 +20,6 @@ int init_scr (void) {
     idlok(stdscr,TRUE);
     clear();
     keypad(stdscr,TRUE);
-    curs_set(0);
     /*Инициализация цветовых пар*/
     start_color();
     init_pair(1,COLOR_YELLOW,COLOR_RED);
@@ -36,11 +35,12 @@ int init_scr (void) {
     /*Отрисовка рамки вокруг окон*/
     box(list[1],0,0);
     box(list[0],0,0);
+    keypad(list[0],TRUE);
+    keypad(list[1],TRUE);
+    curs_set(0);
     refresh();
     wrefresh(list[0]);
     wrefresh(list[1]);
-    keypad(list[0],TRUE);
-    keypad(list[1],TRUE);
     return 0;
 }
 
@@ -120,7 +120,21 @@ int new_list (int cur_win,char *cur_dir, char *path) {
 }
 
 
-
-
+/*Функция восстановления параметров менеджера после запуска исполняемых файлов*/
+void my_refresh (void) {
+    //delwin(stdscr);
+    werase(list[0]);
+    werase(list[1]);
+    delwin(list[0]);
+    delwin(list[1]);
+    init_scr();
+    new_list(0,cur_space[0],".");
+    new_list(1,cur_space[1],".");
+    curs_set(0);
+    refresh();
+    wrefresh(list[1]);
+    wrefresh(list[0]);
+    return;
+}
 
 
