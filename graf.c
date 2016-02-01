@@ -111,7 +111,7 @@ int new_list (int cur_win,char *cur_dir, char *path) {
         }
 
         wrefresh(list[cur_win]);
-        closedir(dir);
+        closedir(dir);//закрываем директорию
         /*Сохраняем полный адрес текущей директории*/
         getcwd(cur_space[cur_win],255);
 
